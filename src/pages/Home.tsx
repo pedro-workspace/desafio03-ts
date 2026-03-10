@@ -1,5 +1,5 @@
 import { Box, Center, Input } from "@chakra-ui/react";
-import { MouseEventHandler, useContext, useState } from "react";
+import { useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AppContext } from "../components/AppContext";
 import { Card } from "../components/Card";
@@ -9,18 +9,23 @@ import { changeLocalStorage } from "../services/storage";
 
 const Home = () => {
     const [ email, setEmail ] = useState<string>('')
-    const { setIsLoggedIn } = useContext(AppContext)
+    const [ password, setPassword ] = useState<string>('')
+    const { setIsLoggedIn, setUser } = useContext(AppContext)
     const navigate = useNavigate()
 
-    const validateUser = async (email: string) => {
-        const loggedIn = await login(email)
+    const validateUser = async (email: string, password: string) => {
+        const response = await login(email, password)
 
-        if(!loggedIn){
-            return alert('Email inválido')
+        if(!response.success){
+            return alert('Email ou senha inválidos')
         }
 
         setIsLoggedIn(true)
-        changeLocalStorage({ login: true })
+        setUser(response.user || null)
+        changeLocalStorage({ 
+            login: true,
+            user: response.user
+        })
         navigate('/conta/1')
     }
   
@@ -31,10 +36,10 @@ const Home = () => {
                     <h1>Faça o login</h1>
                 </Center>
                 <Input placeholder="email" value={email} onChange={(event) => setEmail(event.target.value)} />
-                <Input placeholder="password" />
+                <Input placeholder="password" type="password" value={password} onChange={(event) => setPassword(event.target.value)} />
                 <Center>
                     <DButton
-                        onClick={() => validateUser(email)}
+                        onClick={() => validateUser(email, password)}
                     />
                 </Center>
             </Card>
